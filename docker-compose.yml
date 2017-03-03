@@ -1,0 +1,37 @@
+version: '3'
+
+networks:
+ app-tier:
+  driver: bridge
+
+services:
+  nginx:
+    build:
+      context: ./docker/nginx
+    networks:
+      - app-tier
+    depends_on:
+      - phpfpm
+    ports:
+      - "8081:80"
+    volumes:
+      - ./:/app
+  phpfpm:
+      build:
+        context: ./docker/php
+      ports:
+        - "9000:9000"
+      networks:
+        - app-tier
+      volumes:
+        - ./:/app
+  composer:
+    restart: 'no'
+    image: "composer/composer:alpine"
+    command: install
+    depends_on:
+      - phpfpm
+      - nginx
+    volumes:
+      - .:/app
+    working_dir: '/app'
